@@ -3,8 +3,6 @@ from math import isnan
 
 import pytest
 
-from python.calc import Calc
-
 
 def get_calc_params() -> list:
     rand_int_list = [random.randint(1, 100) if i % 2 == 0 else -random.randint(1, 100) for i in range(2)]
@@ -27,8 +25,7 @@ def get_calc_params() -> list:
 
 @pytest.mark.parametrize('a', get_calc_params())
 @pytest.mark.parametrize('b', get_calc_params())
-def test_calc(a, b, timer_fixture):
-    calc = Calc()
+def test_calc(a, b, calc):
     if isinstance(a, (int, float, bool)) and isinstance(b, (int, float, bool)):
         if b == 0:
             if isnan(a):
