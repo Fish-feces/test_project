@@ -1,9 +1,10 @@
 import pytest
 from appium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 
 
 class TestWEWork:
-    def setup_method(self):
+    def setup_class(self):
         desired_caps = {
             "platformName": "android",
             "deviceName": "emulator-5554",
@@ -14,25 +15,32 @@ class TestWEWork:
         self.driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps)
         self.driver.implicitly_wait(5)
 
-    @pytest.mark.parametrize('user', ['dahuanggou', ])
-    @pytest.mark.parametrize('msg', ['en'])
+    @pytest.mark.parametrize('user', ['lao', 'da'])
+    @pytest.mark.parametrize('msg', ['hi', '嗨'])
     def test_send_msg(self, user, msg):
-        import time
-        self.driver.find_element_by_xpath('/hierarchy/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.view.ViewGroup/android.widget.RelativeLayout[2]/android.widget.TextView').click()
-        time.sleep(3)
+        # 点击通讯录
+        self.driver.find_element_by_xpath('//android.widget.TextView[@text="通讯录"]').click()
+        # 点击搜索
         self.driver.find_element_by_id('com.tencent.wework:id/gq_').click()
-        time.sleep(3)
+        # 输入搜索关键字
         self.driver.find_element_by_id('com.tencent.wework:id/ffq').send_keys(user)
-        time.sleep(3)
-        self.driver.find_element_by_xpath('/hierarchy/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.ListView/android.widget.RelativeLayout[2]/android.widget.RelativeLayout/android.widget.RelativeLayout[1]').click()
-        time.sleep(3)
+        # 点击联系人搜索结果第一个
+        try:
+            self.driver.find_element_by_xpath(
+                '//android.widget.TextView[@text="联系人"]/../following-sibling::android.widget.RelativeLayout[1]'
+            ).click()
+        except NoSuchElementException:
+            print(f'联系人搜索结果为空, 输入内容: {user}')
+            return
+        # 点击发送消息
         self.driver.find_element_by_id('com.tencent.wework:id/aaj').click()
-        time.sleep(3)
-        el = self.driver.find_element_by_id('com.tencent.wework:id/dtv')
-        el.click()
-        el.send_keys(msg)
+        # 输入消息
+        self.driver.find_element_by_id('com.tencent.wework:id/dtv').send_keys(msg)
+        # 点击发送
         self.driver.find_element_by_id('com.tencent.wework:id/dtr').click()
-        time.sleep(3)
 
     def teardown_method(self):
+        self.driver.back()
+
+    def teardown_class(self):
         self.driver.quit()
