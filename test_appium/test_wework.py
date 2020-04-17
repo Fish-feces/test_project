@@ -1,5 +1,8 @@
+import time
+
 import pytest
 from appium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 
 
@@ -14,6 +17,77 @@ class TestWEWork:
         }
         self.driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps)
         self.driver.implicitly_wait(5)
+
+    @pytest.mark.parametrize('username, gender, tel', [
+        (f'大黄狗{i}', i % 2, f'123{str(i)*8}') for i in range(1, 11)
+    ])
+    def test_add_user(self, username, gender, tel):
+        # 点击通讯录
+        self.driver.find_element_by_xpath('//android.view.ViewGroup//*[@text="通讯录"]').click()
+        # 滚动查找添加成员点击
+        self.driver.find_element_by_android_uiautomator('new UiScrollable('
+                                                        'new UiSelector().scrollable(true).instance(0))'
+                                                        '.scrollIntoView(new UiSelector().text("添加成员")'
+                                                        '.instance(0));').click()
+        # 点击手动添加
+        self.driver.find_element_by_id('com.tencent.wework:id/c56').click()
+        time.sleep(2)
+        # 验证添加联系人页面
+        assert ".contact.controller.ContactAddActivity" in self.driver.current_activity
+
+        # 输入姓名
+        self.driver.find_element_by_xpath(
+            '//*[contains(@text, "姓名")]/..//*[@resource-id="com.tencent.wework:id/ase"]'
+        ).send_keys(username)
+        # 选择性别
+        self.driver.find_element_by_xpath('//*[@text="性别"]/..//*[@resource-id="com.tencent.wework:id/at7"]').click()
+        if gender == 1:
+            self.driver.find_element_by_android_uiautomator('new UiSelector().text("男")').click()
+        else:
+            self.driver.find_element_by_android_uiautomator('new UiSelector().text("男")').click()
+        # 输入手机号
+        self.driver.find_element_by_id('com.tencent.wework:id/emh').send_keys(tel)
+        # 点击保存
+        self.driver.find_element_by_id('com.tencent.wework:id/gq7').click()
+        time.sleep(2)
+        # self.driver.find_element_by_xpath('//*[@text="添加成功"]')
+        # assert "添加成功" in self.driver.find_element_by_xpath('//*[@class="android.widget.Toast"]').text
+
+    def test_delete_user(self):
+        # 点击通讯录
+        self.driver.find_element_by_xpath('//android.widget.TextView[@text="通讯录"]').click()
+        # 滚动查找
+        user_els = self.driver.find_elements_by_android_uiautomator(
+            'new UiScrollable('
+            'new UiSelector().scrollable(true).instance(0)).scrollIntoView('
+            'new UiSelector().textStartsWith("大黄狗").clickable(false).instance(0));')
+        while len(user_els) > 0:
+            user_els[0].click()
+            # 点击三个竖点
+            self.driver.find_element_by_id('com.tencent.wework:id/gq0').click()
+            # 点击编辑成员
+            self.driver.find_element_by_id('com.tencent.wework:id/axr').click()
+            # 滑动点击删除成员
+            self.driver.find_element_by_android_uiautomator(
+                'new UiScrollable('
+                'new UiSelector().scrollable(true).instance(0)).scrollIntoView('
+                'new UiSelector().resourceId("com.tencent.wework:id/drk").instance(0));').click()
+            # 点击确定
+            self.driver.find_element_by_id('com.tencent.wework:id/b89').click()
+            # 继续滚动查找点击
+            user_els = self.driver.find_elements_by_android_uiautomator(
+                'new UiScrollable('
+                'new UiSelector().scrollable(true).instance(0)).scrollIntoView('
+                'new UiSelector().textStartsWith("大黄狗").clickable(false).instance(0));')
+            # TODO: 这地方不用等待也可以成功?
+            # user_els = WebDriverWait(self.driver, 10).until(
+            #     lambda driver: driver.find_elements_by_android_uiautomator(
+            #         'new UiScrollable('
+            #         'new UiSelector().scrollable(true).instance(0)).scrollIntoView('
+            #         'new UiSelector().textStartsWith("大黄狗").clickable(false).instance(0));'
+            #     )
+            # )
+        assert len(user_els) == 0
 
     @pytest.mark.parametrize('user', ['lao', 'da'])
     @pytest.mark.parametrize('msg', ['hi', '嗨'])
