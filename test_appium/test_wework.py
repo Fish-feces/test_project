@@ -53,33 +53,33 @@ class TestWEWork:
         # self.driver.find_element_by_xpath('//*[@text="添加成功"]')
         # assert "添加成功" in self.driver.find_element_by_xpath('//*[@class="android.widget.Toast"]').text
 
-    def test_delete_user(self):
+    @pytest.mark.parametrize('username', ['大黄狗', ])
+    def test_delete_user(self, username):
         # 点击通讯录
         self.driver.find_element_by_xpath('//android.widget.TextView[@text="通讯录"]').click()
         # 滚动查找
         user_els = self.driver.find_elements_by_android_uiautomator(
             'new UiScrollable('
             'new UiSelector().scrollable(true).instance(0)).scrollIntoView('
-            'new UiSelector().textStartsWith("大黄狗").clickable(false).instance(0));')
+            f'new UiSelector().textStartsWith("{username}").clickable(false).instance(0));')
         while len(user_els) > 0:
             user_els[0].click()
             # 点击三个竖点
             self.driver.find_element_by_id('com.tencent.wework:id/gq0').click()
             # 点击编辑成员
             self.driver.find_element_by_id('com.tencent.wework:id/axr').click()
-            # 滑动点击删除成员
+            # 滑动点击删除成员, MuMu不滑动找不到
             self.driver.find_element_by_android_uiautomator(
                 'new UiScrollable('
                 'new UiSelector().scrollable(true).instance(0)).scrollIntoView('
                 'new UiSelector().resourceId("com.tencent.wework:id/drk").instance(0));').click()
             # 点击确定
             self.driver.find_element_by_id('com.tencent.wework:id/b89').click()
-            # 继续滚动查找点击
+            # 继续滚动查找点击, 这地方的f字符串"{username}"引号不能少
             user_els = self.driver.find_elements_by_android_uiautomator(
                 'new UiScrollable('
                 'new UiSelector().scrollable(true).instance(0)).scrollIntoView('
-                'new UiSelector().textStartsWith("大黄狗").clickable(false).instance(0));')
-            # TODO: 这地方不用等待也可以成功?
+                f'new UiSelector().textStartsWith("{username}").clickable(false).instance(0));')
             # user_els = WebDriverWait(self.driver, 10).until(
             #     lambda driver: driver.find_elements_by_android_uiautomator(
             #         'new UiScrollable('
