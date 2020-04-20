@@ -18,10 +18,15 @@ class TestWEWork:
         self.driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps)
         self.driver.implicitly_wait(5)
 
+    @pytest.fixture(autouse=False)
+    def driver_back_fixture(self):
+        yield
+        self.driver.back()
+
     @pytest.mark.parametrize('username, gender, tel', [
         (f'大黄狗{i}', i % 2, f'123{str(i)*8}') for i in range(1, 11)
     ])
-    def test_add_user(self, username, gender, tel):
+    def test_add_user(self, driver_back_fixture, username, gender, tel):
         # 点击通讯录
         self.driver.find_element_by_xpath('//android.view.ViewGroup//*[@text="通讯录"]').click()
         # 滚动查找添加成员点击
@@ -91,7 +96,7 @@ class TestWEWork:
 
     @pytest.mark.parametrize('user', ['lao', 'da'])
     @pytest.mark.parametrize('msg', ['hi', '嗨'])
-    def test_send_msg(self, user, msg):
+    def test_send_msg(self, driver_back_fixture, user, msg):
         # 点击通讯录
         self.driver.find_element_by_xpath('//android.widget.TextView[@text="通讯录"]').click()
         # 点击搜索
@@ -112,9 +117,6 @@ class TestWEWork:
         self.driver.find_element_by_id('com.tencent.wework:id/dtv').send_keys(msg)
         # 点击发送
         self.driver.find_element_by_id('com.tencent.wework:id/dtr').click()
-
-    def teardown_method(self):
-        self.driver.back()
 
     def teardown_class(self):
         self.driver.quit()
