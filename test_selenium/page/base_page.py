@@ -7,7 +7,7 @@ class BasePage:
         self.driver = None
         if driver is None:
             opts = webdriver.ChromeOptions()
-            opts.debugger_address="127.0.0.1:9222"
+            opts.debugger_address = '127.0.0.1:9222'
             self.driver = webdriver.Chrome(options=opts)
             self.driver.implicitly_wait(3)
         else:
